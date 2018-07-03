@@ -17,6 +17,9 @@ def meanFilter(vector, N):
     if length < 2*N+1:
         raise CustomError("向量长度必须大于2N*1")
 
+    if N == 0:
+        return vector
+
     for i in range(length):
         if i<N:
             ave[i] = sum(vector[:2*i+1])/(2*i+1)
@@ -27,8 +30,8 @@ def meanFilter(vector, N):
     return ave
 
 if __name__ == "__main__":
-    A = [1+1j, 2+2j, 3+3j, 4+4j, 5+5j, 5+5j, 6+6j, 7+7j, 8+8j]
-    B = meanFilter(A, 10)
+    A = [1+1j, 2+2j, 3+3j, 6+4j, 5+5j, 8+5j, 6+9j, 7+7j, 8+8j]
+    B = meanFilter(A, 0)
     print(B)
 
 

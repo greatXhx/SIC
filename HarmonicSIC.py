@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import fft, ifft
 from scipy import signal
 from filter import *
+from RLS import *
 
 BPSK = [1 + 1j, 1 - 1j, -1 + 1j, -1 - 1j]
 x1 = []     ##训练信号
@@ -32,9 +33,9 @@ for i in range(Nc):
     y1 = y1 + x1[i].real*np.cos(2*np.pi*(fb + i+1)*fc*t)*0.05 - x1[i].imag*np.sin(2*np.pi*(fb + i+1)*fc*t)*0.05
     y2 = y2 + x2[i].real*np.cos(2*np.pi*(fb + i+1)*fc*t)*0.05 - x2[i].imag*np.sin(2*np.pi*(fb + i+1)*fc*t)*0.05
 
-x = y1 + 100
-y = y2 + 100
-k = [10, 0.01, 0.001]
+x = y1
+y = y2
+k = [10, 1, 0.01]
 
 noise1 = [0.1*random.random() for i in range(Nb)]
 
@@ -99,7 +100,7 @@ ax[2].plot(abs(estH), linewidth=0.5)
 
 
 ##谐波消除
-estHa = meanFilter(estH, 1400)
+estHa = meanFilter(estH, 10)
 residual = Y2 - x2Conv*estH
 residual1 = Y2 - x2Conv*estHa
 
