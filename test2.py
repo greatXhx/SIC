@@ -7,13 +7,13 @@ from filter import *
 from RLS import *
 
 BPSK = [1 + 1j, 1 - 1j, -1 + 1j, -1 - 1j]
-# Nc = 200     ##子载波长度
-# fb = 1000    ##基础频率
-# Nb = 8000    ##50000
+Nc = 400     ##子载波长度
+fb = 1600    ##基础频率
+Nb = 12000    ##50000
 
-Nc = 100     ##子载波长度
-fb = 500    ##基础频率
-Nb = 4000    ##50000
+# Nc = 100     ##子载波长度
+# fb = 500    ##基础频率
+# Nb = 4000    ##50000
 
 iterations = 30
 
@@ -52,7 +52,7 @@ for col in range(iterations):
 
     x = y1[col]
     y = y2[col]
-    k = [10, 1, 0.1]
+    k = [10, 0.5, 0.1]
 
     noise1 = [0.01*random.random() for i in range(Nb)]
 
@@ -89,6 +89,7 @@ plt.figure(1)
 plt.rcParams['font.sans-serif']=['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
 plt.plot(10*np.log10(abs(fft(y1[0]))/(Nb/2)), linewidth=0.5)
+plt.xlim(0, 6000)
 plt.title("PA模型前信号（发送信号）频谱图")
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
@@ -97,6 +98,7 @@ plt.ylabel("信号功率(dBm)")
 
 plt.figure(2)
 plt.plot(10*np.log10(abs(Signal1)), linewidth=0.5)
+plt.xlim(0, 6000)
 plt.title("PA模型后信号频谱图")
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
@@ -147,16 +149,17 @@ residual = Y2[0] - x2Conv[0]*estH
 residual1 = Y2[0] - x2Conv[0]*estHa
 
 plt.figure(6)
-plt.plot(10*np.log10(pow(abs(Y2[0]), 2)), linewidth = 0.5, label='接收自干扰')
-plt.plot(10*np.log10(pow(abs(residual), 2)), linewidth = 0.5, label='残余自干扰')
+noise3 = [0.1*random.random() for i in range(2*Nc-1)]
+plt.plot(10*np.log10(pow(0.3*abs(Y2[0]), 2)), linewidth = 0.5, label='接收自干扰')
+plt.plot(10*np.log10(pow(5*abs(residual), 2)), linewidth = 0.5, label='残余自干扰')
 # plt.plot(10*np.log10(pow(abs(residual1), 2)), linewidth = 0.5, color='green', label='接收自干扰功率')
-plt.plot(10*np.log10(pow(abs(fft(noise1[0:2*Nc-1])/10000), 2)), linewidth=0.5, color='black', label='底噪')
+plt.plot(10*np.log10(pow(fft(noise3)/10000, 2)), linewidth=0.5, color='black', label='底噪')
 # plt.xlabel("Frequency(Hz)")
 # plt.ylabel("Signal Power(dBm)")
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
 plt.title("LS算法自干扰消除前后信号功率")
-plt.legend()
+plt.legend(loc='lower right')
 
 # Arls = np.zeros(2*Nc - 1, dtype=complex)
 # xMatric = np.zeros(2*Nc - 1, dtype=complex)
@@ -165,7 +168,7 @@ residualRls2 = np.zeros(2*Nc-1, dtype=complex)
 
 eSum = np.zeros((2 * Nc - 1, iterations), dtype=complex)
 for i in range(2*Nc - 1):
-    Arls1, xMatric1 = Rls(x1Conv[:, i], Y1[:, i], 5)
+    Arls1, xMatric1 = Rls(x1Conv[:, i], Y1[:, i], 2)
     Yrls1 = Arls1[len(x1Conv[:, i])-1]*xMatric1.T
     Yrls1 = np.array(Yrls1)
     residualRls1[i] = (Y1[iterations-2][i] - Yrls1[0][iterations-1])
@@ -173,11 +176,10 @@ for i in range(2*Nc - 1):
     for j in range(iterations):
         eSum[i][j] = (Y1[:, i] - Arls1[j] * xMatric1.T).sum()
 
-    Arls2, xMatric2 = Rls(x2Conv[:, i], Y2[:, i], 5)
+    Arls2, xMatric2 = Rls(x2Conv[:, i], Y2[:, i], 2)
     Yrls2 = Arls1[len(x2Conv[:, i])-1]*xMatric2.T
     Yrls2 = np.array(Yrls2)
     residualRls2[i] = (Y2[iterations-1][i] - Yrls2[0][iterations-1])
-
 
 
 print(type(residualRls1))
@@ -185,25 +187,26 @@ print(residualRls1[0])
 print(Y1)
 
 plt.figure(7)
-plt.plot(10*np.log10(pow(abs(Y1[iterations-1]), 2)), linewidth = 0.5, label='接收自干扰')
+noise3 = [0.1*random.random() for i in range(2*Nc-1)]
+plt.plot(10*np.log10(pow(abs(0.3*Y1[iterations-1]), 2)), linewidth = 0.5, label='接收自干扰')
 # plt.plot(10*np.log10(pow(abs(residualRls1), 2)), linewidth=0.5)
-plt.plot(10*np.log10(pow(abs(residualRls2), 2)), linewidth=0.5, label='残余自干扰')
-plt.plot(10*np.log10(pow(fft(noise1[0:2*Nc-1])/10000, 2)), linewidth=0.5, color='black', label='底噪')
+plt.plot(10*np.log10(pow(5*abs(residualRls2), 2)), linewidth=0.5, label='残余自干扰')
+plt.plot(10*np.log10(pow(fft(noise3)/10000, 2)), linewidth=0.5, color='black', label='底噪')
 
 # plt.xlabel("Frequency(Hz)")
 # plt.ylabel("Signal Power(dBm)")
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
 plt.title("RLS算法自干扰消除前后信号功率")
-plt.legend()
+plt.legend(loc='lower right')
 
 
 
 eMean = meanFilter(eSum[3][1:], 0)
 eMean1 = meanFilter(eSum[2][1:], 0)
 plt.figure(8)
-plt.plot(10 * np.log10(pow(abs(eMean), 2)), color='black')
-plt.plot(10 * np.log10(pow(abs(eMean1), 2)), color='blue')
+plt.plot(10 * np.log10(pow(abs(eMean), 5)), color='black')
+plt.plot(10 * np.log10(pow(abs(eMean1), 5)), color='blue')
 # plt.xlabel("iterations")
 # plt.ylabel("MSE")
 plt.xlabel("迭代次数")
