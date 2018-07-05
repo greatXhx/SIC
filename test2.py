@@ -7,9 +7,14 @@ from filter import *
 from RLS import *
 
 BPSK = [1 + 1j, 1 - 1j, -1 + 1j, -1 - 1j]
+# Nc = 200     ##子载波长度
+# fb = 1000    ##基础频率
+# Nb = 8000    ##50000
+
 Nc = 100     ##子载波长度
 fb = 500    ##基础频率
 Nb = 4000    ##50000
+
 iterations = 30
 
 x1 = np.zeros((iterations, Nc), dtype=complex)     ##训练信号
@@ -47,7 +52,7 @@ for col in range(iterations):
 
     x = y1[col]
     y = y2[col]
-    k = [10, 0.5, 0.1]
+    k = [10, 1, 0.1]
 
     noise1 = [0.01*random.random() for i in range(Nb)]
 
@@ -81,13 +86,37 @@ Signal2[0] = 0
 
 
 plt.figure(1)
+plt.rcParams['font.sans-serif']=['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 plt.plot(10*np.log10(abs(fft(y1[0]))/(Nb/2)), linewidth=0.5)
+plt.title("PA模型前信号（发送信号）频谱图")
+plt.xlabel("频率(Hz)")
+plt.ylabel("信号功率(dBm)")
+# plt.xlabel("Frequency(Hz)")
+# plt.ylabel("Signal Power(dBm)")
 
 plt.figure(2)
-plt.plot(y1[0], signal1[0,:], linewidth=0.5, linestyle='-')
-#
-plt.figure(3)
 plt.plot(10*np.log10(abs(Signal1)), linewidth=0.5)
+plt.title("PA模型后信号频谱图")
+plt.xlabel("频率(Hz)")
+plt.ylabel("信号功率(dBm)")
+# plt.xlabel("Frequency(Hz)")
+# plt.ylabel("Signal Power(dBm)")
+
+plt.figure(3)
+plt.rcParams['font.sans-serif']=['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+plt.plot(y1[0]/1.8, signal1[0,:]*10000/18, linewidth=0.5, linestyle='-', label='PA模型输入输出曲线')
+plt.plot(y1[0]/1.8, y1[0]*k[0]/18, linewidth=0.5, linestyle='-', label='理想线性曲线')
+plt.xlim(0,)
+plt.ylim(0,)
+plt.xlabel("归一化输入")
+plt.ylabel("归一化输出")
+# plt.xlabel("Normalization Input")
+# plt.ylabel("Normalization Output")
+plt.title("PA模型输入输出曲线")
+plt.legend()
+#
 
 Y1Angle = np.angle(Y1[0])
 x1ConvAngle = np.angle(x1Conv[0])
@@ -118,10 +147,16 @@ residual = Y2[0] - x2Conv[0]*estH
 residual1 = Y2[0] - x2Conv[0]*estHa
 
 plt.figure(6)
-plt.plot(10*np.log10(pow(abs(Y2[0]), 2)), linewidth = 0.5)
-plt.plot(10*np.log10(pow(abs(residual), 2)), linewidth = 0.5)
-plt.plot(10*np.log10(pow(abs(residual1), 2)), linewidth = 0.5, color='green')
-plt.plot(10*np.log10(pow(fft(noise1[0:2*Nc-1])/10000, 2)), linewidth=0.5, color='black')
+plt.plot(10*np.log10(pow(abs(Y2[0]), 2)), linewidth = 0.5, label='接收自干扰')
+plt.plot(10*np.log10(pow(abs(residual), 2)), linewidth = 0.5, label='残余自干扰')
+# plt.plot(10*np.log10(pow(abs(residual1), 2)), linewidth = 0.5, color='green', label='接收自干扰功率')
+plt.plot(10*np.log10(pow(abs(fft(noise1[0:2*Nc-1])/10000), 2)), linewidth=0.5, color='black', label='底噪')
+# plt.xlabel("Frequency(Hz)")
+# plt.ylabel("Signal Power(dBm)")
+plt.xlabel("频率(Hz)")
+plt.ylabel("信号功率(dBm)")
+plt.title("LS算法自干扰消除前后信号功率")
+plt.legend()
 
 # Arls = np.zeros(2*Nc - 1, dtype=complex)
 # xMatric = np.zeros(2*Nc - 1, dtype=complex)
@@ -150,15 +185,28 @@ print(residualRls1[0])
 print(Y1)
 
 plt.figure(7)
-plt.plot(10*np.log10(pow(abs(Y1[iterations-1]), 2)), linewidth = 0.5)
+plt.plot(10*np.log10(pow(abs(Y1[iterations-1]), 2)), linewidth = 0.5, label='接收自干扰')
 # plt.plot(10*np.log10(pow(abs(residualRls1), 2)), linewidth=0.5)
-plt.plot(10*np.log10(pow(abs(residualRls2), 2)), linewidth=0.5)
-plt.plot(10*np.log10(pow(fft(noise1[0:2*Nc-1])/10000, 2)), linewidth=0.5, color='black')
+plt.plot(10*np.log10(pow(abs(residualRls2), 2)), linewidth=0.5, label='残余自干扰')
+plt.plot(10*np.log10(pow(fft(noise1[0:2*Nc-1])/10000, 2)), linewidth=0.5, color='black', label='底噪')
 
-plt.figure(8)
+# plt.xlabel("Frequency(Hz)")
+# plt.ylabel("Signal Power(dBm)")
+plt.xlabel("频率(Hz)")
+plt.ylabel("信号功率(dBm)")
+plt.title("RLS算法自干扰消除前后信号功率")
+plt.legend()
+
+
 
 eMean = meanFilter(eSum[3][1:], 0)
 eMean1 = meanFilter(eSum[2][1:], 0)
+plt.figure(8)
 plt.plot(10 * np.log10(pow(abs(eMean), 2)), color='black')
 plt.plot(10 * np.log10(pow(abs(eMean1), 2)), color='blue')
+# plt.xlabel("iterations")
+# plt.ylabel("MSE")
+plt.xlabel("迭代次数")
+plt.ylabel("均方误差")
+plt.title("RLS算法收敛曲线")
 plt.show()
