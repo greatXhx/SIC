@@ -29,10 +29,44 @@ def meanFilter(vector, N):
             ave[i] = sum(vector[i-N:i+N+1])/(2*N+1)
     return ave
 
-if __name__ == "__main__":
-    A = [1+1j, 2+2j, 3+3j, 6+4j, 5+5j, 8+5j, 6+9j, 7+7j, 8+8j]
-    B = meanFilter(A, 0)
-    print(B)
+def complexMedFilter(vector, N):
+    ##复数中位数滤波，取前后加本身工N点
+    ##self: 输入一维向量
+    ##N：N点中位数滤波
+    import numpy as np
 
+    length = len(vector)
+    vectorNp = np.array(vector, dtype=complex)
+    vectorAbs = abs(vectorNp)
+    # print(vectorAbs)
+    halfN = int((N-1)/2)
+
+    if length < N:
+        raise CustomError("向量长度必须大于N")
+
+    if N == 0:
+        return vector
+
+    for i in range(length):
+        if i < (N-1)/2:
+            sortindex = np.argsort(vectorAbs[:2*i+1])
+            vector[i] = vectorNp[sortindex[i]]
+        elif length-i <= (N-1)/2:
+            sortindex = np.argsort(vectorAbs[i-(length-i)+1:])
+            vector[i] = vectorNp[i-(length-i)+1 + sortindex[length-i-1]]
+        else:
+            sortindex = np.argsort(vectorAbs[i-halfN:i+N-halfN])
+            vector[i] = vectorNp[i - halfN +sortindex[halfN]]
+
+    return vector
+
+
+
+if __name__ == "__main__":
+
+    A = [0+4j, 0+1j, 0+3j, 0+4j, 0+2j, 0+5j, 0+9j, 0+1j, 0+8j]
+    # B = meanFilter(A, 0)
+    # print(B)
+    complexMedFilter(A, 7)
 
 
