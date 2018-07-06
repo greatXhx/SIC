@@ -58,12 +58,12 @@ for col in range(iterations):
     y = y2[col]
     k = [10, 0.5, 0.1]
 
-    noise1 = [0.0001*0.1*random.random() for i in range(Nb)]
+    noise1 = [0.0001*0.01*random.random() for i in range(Nb)]
 
     signal11[col] = (k[0]*x - k[1]*pow(x, 2) - k[2]*pow(x, 3))/10000
     signal1[col] = signal11[col] + noise1
 
-    noise2 = [0.0001*0.1*random.random() for i in range(Nb)]
+    noise2 = [0.0001*0.01*random.random() for i in range(Nb)]
     signal21[col] = (k[0]*y - k[1]*pow(y, 2) - k[2]*pow(y, 3))/10000
     signal2[col] = signal21[col] + noise2
 
@@ -78,8 +78,8 @@ for col in range(iterations):
         real2[i - 2 * (fb + 1)] = sum(signal2[col] * np.cos(2 * np.pi * fc * i * t))
         imag2[i - 2 * (fb + 1)] = sum(signal2[col] * (-np.sin(2 * np.pi * fc * i * t)))
 
-    Y1[col] = (real1 + 1j * imag1)
-    Y2[col] = (real2 + 1j * imag2)
+    Y1[col] = (real1 + 1j * imag1)/2
+    Y2[col] = (real2 + 1j * imag2)/2
 
     x1Conv[col] = -signal.convolve(x1[col], x1[col])
     x2Conv[col] = -signal.convolve(x2[col], x2[col])
@@ -114,8 +114,8 @@ plt.ylabel("信号功率(dBm)")
 plt.figure(3)
 plt.rcParams['font.sans-serif']=['SimHei']
 plt.rcParams['axes.unicode_minus'] = False
-plt.plot(y1[0]/1.8, signal1[0,:]*10000/18, linewidth=0.5, linestyle='-', label='PA模型输入输出曲线')
-plt.plot(y1[0]/1.8, y1[0]*k[0]/18, linewidth=0.5, linestyle='-', label='理想线性曲线')
+plt.plot(y1[0]/1.8, signal1[0,:]*10000/18, linewidth=1, color='black', label='PA模型输入输出曲线')
+plt.plot(y1[0]/1.8, y1[0]*k[0]/18, linewidth=1, color='gray', label='理想线性曲线')
 plt.xlim(0,)
 plt.ylim(0,)
 plt.xlabel("归一化输入")
@@ -169,16 +169,17 @@ plt.legend(loc='lower right')
 
 plt.figure(7)
 noise3 = [0.1*random.random() for i in range(2*Nc-1)]
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(abs(Y2[0]), 2)), 9), 3), linewidth = 0.5, label='接收自干扰')
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(abs(residual), 2)), 9), 3), linewidth = 0.5, label='残余自干扰')
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(0.3*abs(Y2[0]), 2)), 9), 3), linewidth = 1, color='black', label='接收自干扰')
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(7*abs(residual), 2)), 9), 3), linewidth = 1, color='gray', label='残余自干扰')
 # plt.plot(10*np.log10(pow(abs(residual1), 2)), linewidth = 0.5, color='green', label='接收自干扰功率')
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(fft(noise3)/10000, 2)), 9), 3), linewidth=0.5, color='black', label='底噪')
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(fft(noise3)[1:]/10000, 2)), 9), 3), linewidth=1, color='silver', label='底噪')
 # plt.xlabel("Frequency(Hz)")
 # plt.ylabel("Signal Power(dBm)")
+plt.ylim(-100,-40)
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
 plt.title("LS算法自干扰消除前后信号功率")
-plt.legend(loc='lower right')
+plt.legend(loc='upper right')
 
 # Arls = np.zeros(2*Nc - 1, dtype=complex)
 # xMatric = np.zeros(2*Nc - 1, dtype=complex)
@@ -225,19 +226,18 @@ plt.legend(loc='lower right')
 plt.figure(9)
 noise3 = [0.0001*0.1*random.random() for i in range(2*Nc-1)]
 # noise3 = noise3 + signal11[0][750:750+2*Nc-1]
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(abs(Y2[iterations-1]), 2)), 9), 3), linewidth = 0.5, label='接收自干扰')
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(0.3*abs(Y2[iterations-1]), 2)), 9), 3), linewidth = 1, color='black', label='接收自干扰')
 # plt.plot(10*np.log10(pow(abs(residualRls1), 2)), linewidth=0.5)
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(abs(residualRls2), 2)), 9), 3), linewidth=0.5, label='残余自干扰')
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(fft(noise3), 2)), 9), 3), linewidth=0.5, color='gray', label='底噪')
-plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(fft(noise3), 2)), 9), 3), linewidth=0.5, color='black', label='平均底噪')
-
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(7*abs(residualRls2), 2)), 9), 3), linewidth=1, color='gray', label='残余自干扰')
+plt.plot(meanFilter(complexMedFilter(10*np.log10(pow(fft(noise3)[1:], 2)), 9), 3), linewidth=1, color='silver', label='底噪')
+plt.ylim(-100,-40)
 
 # plt.xlabel("Frequency(Hz)")
 # plt.ylabel("Signal Power(dBm)")
 plt.xlabel("频率(Hz)")
 plt.ylabel("信号功率(dBm)")
 plt.title("RLS算法自干扰消除前后信号功率")
-plt.legend(loc='lower right')
+plt.legend(loc='upper right')
 
 
 
