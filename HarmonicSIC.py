@@ -10,9 +10,9 @@ BPSK = [1 + 1j, 1 - 1j, -1 + 1j, -1 - 1j]
 x1 = []     ##训练信号
 x2 = []     ##需要消除时的发送信号
 x3 = []        ##远端有用信号
-Nc = 600     ##子载波长度
-fb = 3000    ##基础频率
-Nb = 30000    ##50000
+Nc = 1200     ##子载波长度
+fb = 6000    ##基础频率
+Nb = 50000    ##50000
 x = 0
 
 for i in range(Nc):
@@ -35,13 +35,13 @@ for i in range(Nc):
 
 x = y1
 y = y2
-k = [10, 1, 0.01]
+k = [10, 2, 0.01]
 
-noise1 = [0.1*random.random() for i in range(Nb)]
+noise1 = [0.01*random.random() for i in range(Nb)]
 
 signal1 = (k[0]*x - k[1]*pow(x, 2) - k[2]*pow(x, 3) + noise1)/10000
 
-noise2 = [0.1*random.random() for i in range(Nb)]
+noise2 = [0.01*random.random() for i in range(Nb)]
 signal2 = (k[0]*y - k[1]*pow(y, 2) - k[2]*pow(y, 3) + noise2)/10000
 
 Signal1 = fft(signal1)/(Nb/2)
@@ -61,8 +61,8 @@ for i in range(2*(fb+1), 2*(fb+1) + 2*Nc-1):
     real2[i-2*(fb+1)] = sum(signal2*np.cos(2*np.pi*fc*i*t))
     imag2[i-2*(fb+1)] = sum(signal2*(-np.sin(2*np.pi*fc*i*t)))
 
-Y1 = (real1+1j*imag1)/2
-Y2 = (real2+1j*imag2)/2
+Y1 = (real1+1j*imag1)*2/Nb
+Y2 = (real2+1j*imag2)*2/Nb
 
 x1Conv = -signal.convolve(x1, x1)
 x2Conv = -signal.convolve(x2, x2)
@@ -105,9 +105,8 @@ residual = Y2 - x2Conv*estH
 residual1 = Y2 - x2Conv*estHa
 
 plt.figure(6)
-plt.plot(10*np.log10(pow(abs(Y2), 2)), linewidth = 0.5)
-plt.plot(10*np.log10(pow(abs(residual), 2)), linewidth = 0.5)
-plt.plot(10*np.log10(pow(abs(residual1), 2)), linewidth = 0.5, color='green')
-plt.plot(10*np.log10(pow(fft(noise1[0:2*Nc-1])/10000, 2)), linewidth=0.5, color='black')
+plt.plot(10*np.log10(abs(Y2)), linewidth = 0.5)
+plt.plot(10*np.log10(pow(abs(residual), 1)), linewidth = 0.5)
+# plt.plot(10*np.log10(pow(abs(residual1), 1)), linewidth = 0.5, color='green')
 
 plt.show()
